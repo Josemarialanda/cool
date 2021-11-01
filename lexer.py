@@ -113,11 +113,14 @@ class Lexer:
             "<" : TokenType.LT,
             ">" : TokenType.GT,
             "<=" : TokenType.LTOE,
-            ">=" : TokenType.GTOE
+            ">=" : TokenType.GTOE,
+            "<-" : TokenType.ASSIGN
         }
+
+        # Add support for the assignment operator <-
         
         TTYPE = singleCharacterTokens.get(char)
-        
+
         if TTYPE is None: return False
         
         token = Token(TTYPE, char, self.contextPosition-1, self.lineNumber)
@@ -130,7 +133,7 @@ class Lexer:
         while self.sourcePosition < len(self.source):
             self.skipWS()
             if not (self.isLiteral() or self.isSingleCharacterToken()): 
-                error = Error(self.sourcePosition, self.lineNumber, f"Syntax error -> {self.lineNumber}:{self.sourcePosition}" )
+                error = Error(self.contextPosition-1, self.lineNumber, f"Syntax error -> {self.lineNumber}:{self.contextPosition-1}" )
                 self.errors.append(error)
                 self.sourcePosition += 1
 
@@ -140,18 +143,18 @@ class TokenType(Enum):
     STRING = 1; NUMBER = 2; TYPE_ID = 3; OBJ_ID = 4
     SELF = 5; SELF_TYPE = 6
     
-    # Single-character tokens
+    # Single-or-2-character tokens
     LEFT_PAREN = 7; RIGHT_PAREN = 8; LEFT_BRACE = 9
     RIGHT_BRACE = 10; COMMA = 11; DOT = 12; MINUS = 13
     PLUS = 14; COLON = 15; SEMICOLON = 16; SLASH = 17; STAR = 18
-    EQ = 19; LT = 20; GT = 21; LTOE = 22; GTOE = 23
+    EQ = 19; LT = 20; GT = 21; LTOE = 22; GTOE = 23; ASSIGN = 24
     
     # keywords, keywords are case insensitive (except for true and false)
-    CLASS = 24; ELSE = 25; FALSE = 26; FI = 27
-    IF = 28; IN = 29; INHERITS = 30; ISVOID = 31
-    LET = 32; LOOP = 33; POOL = 34; THEN = 35
-    WHILE = 36; CASE = 37; ESAC = 38; NEW = 39
-    OF = 40; NOT = 41; TRUE = 42
+    CLASS = 25; ELSE = 26; FALSE = 27; FI = 28
+    IF = 29; IN = 30; INHERITS = 31; ISVOID = 32
+    LET = 33; LOOP = 34; POOL = 35; THEN = 36
+    WHILE = 37; CASE = 38; ESAC = 39; NEW = 40
+    OF = 41; NOT = 42; TRUE = 43
     
 keywords = {
     "class"    :  TokenType.CLASS,
