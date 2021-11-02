@@ -1,4 +1,5 @@
 from enum import Enum
+import sys
 
 class Lexer:
 
@@ -26,8 +27,8 @@ class Lexer:
                 self.lineNumber += 1
             else: self.contextPosition += 1
             self.sourcePosition += 1
+            if self.sourcePosition+1 > len(self.source): return True
             
-    
     def isLiteral(self):
         
         pos = self.sourcePosition
@@ -40,6 +41,7 @@ class Lexer:
                 pos += 1
                 while self.source[pos] != '"':
                     lexeme += self.source[pos]; pos += 1; self.contextPosition += 1
+                    if pos+1 > len(self.source): break
                 self.tokens.append(Token(TokenType.STRING, lexeme, self.contextPosition-len(lexeme), self.lineNumber))
                 self.sourcePosition = pos+1
                 return True
@@ -51,6 +53,7 @@ class Lexer:
             if self.source[pos].isdigit():
                 while self.source[pos].isdigit():
                     lexeme += self.source[pos]; pos += 1; self.contextPosition += 1
+                    if pos+1 > len(self.source): break
                 self.tokens.append(Token(TokenType.NUMBER, lexeme, self.contextPosition-len(lexeme), self.lineNumber))
                 self.sourcePosition = pos
                 return True
@@ -62,6 +65,7 @@ class Lexer:
             if self.source[pos].isalpha() and self.source[pos].isupper():
                 while self.source[pos].isalnum() or self.source[pos] == "_":
                     lexeme += self.source[pos]; pos += 1; self.contextPosition += 1
+                    if pos+1 > len(self.source): break
                 if isSelfType(lexeme) : token = Token(TokenType.SELF_TYPE, lexeme, self.contextPosition-len(lexeme), self.lineNumber)
                 else                  : token = Token(TokenType.TYPE_ID, lexeme, self.contextPosition-len(lexeme), self.lineNumber)
                 self.tokens.append(token)
@@ -75,6 +79,7 @@ class Lexer:
             if self.source[pos].isalpha():
                 while self.source[pos].isalnum() or self.source[pos] == "_":
                     lexeme += self.source[pos]; pos += 1; self.contextPosition += 1
+                    if pos+1 > len(self.source): break
                 if isSelf(lexeme)      : token = Token(TokenType.SELF, lexeme, self.contextPosition-len(lexeme), self.lineNumber) 
                 elif isKeyword(lexeme) : token = Token(keywords[lexeme], lexeme, self.contextPosition-len(lexeme), self.lineNumber) 
                 else                   : token = Token(TokenType.OBJ_ID, lexeme, self.contextPosition-len(lexeme), self.lineNumber) 
@@ -146,7 +151,7 @@ class Lexer:
     #TODO: add comment support -> (* this is a comment *)
     def scan(self) -> bool:
         while self.sourcePosition < len(self.source):
-            self.skipWS()
+            if self.skipWS(): break
             if not (self.isLiteral() or self.isSingleCharacterToken()): 
                 error = Error(self.contextPosition, self.lineNumber, f"Syntax error -> {self.lineNumber}:{self.contextPosition} | unkown symbol: {self.source[self.sourcePosition]}" )
                 self.errors.append(error)
@@ -230,12 +235,18 @@ class Error:
               errorMessage     : {self.errorMessage}
               '''
 
+def main(source):
+    lexer = Lexer(source)
+    lexer.scan()
+    print("Tokens:")
+    for token in lexer.tokens:
+        print(token)
+    print("Syntax errors:")
+    for error in lexer.errors:
+        print(error)
 
-lexer = Lexer("example.cl")
-lexer.scan()
-print("Tokens:")
-for token in lexer.tokens:
-    print(token)
-print("Syntax errors:")
-for error in lexer.errors:
-    print(error)
+if __name__ == "__main__":
+    if (len(sys.argv)-1) != 1: print("Only enter source code you wish to tokenize.")
+    else:
+        source = sys.argv[1]
+        main(source)
