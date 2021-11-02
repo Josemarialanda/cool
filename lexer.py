@@ -24,8 +24,9 @@ class Lexer:
             if self.source[self.sourcePosition] == "\n": 
                 self.contextPosition = 1
                 self.lineNumber += 1
+            else: self.contextPosition += 1
             self.sourcePosition += 1
-            self.contextPosition += 1
+            
     
     def isLiteral(self):
         
@@ -95,7 +96,7 @@ class Lexer:
     
     def isSingleCharacterToken(self):
         
-        char = self.source[self.sourcePosition]  
+        char = self.source[self.sourcePosition]
         
         singleCharacterTokens = {
             "(" : TokenType.LEFT_PAREN,
@@ -116,14 +117,28 @@ class Lexer:
             ">=" : TokenType.GTOE,
             "<-" : TokenType.ASSIGN
         }
-
-        # Add support for the assignment operator <-
         
         TTYPE = singleCharacterTokens.get(char)
 
         if TTYPE is None: return False
+        elif TTYPE == TokenType.LT or TTYPE == TokenType.GT and self.sourcePosition < len(self.source):
+            nextChar = self.source[self.sourcePosition+1]
+            if nextChar == "=" or nextChar == "-": 
+                self.sourcePosition += 1; self.contextPosition += 1
+                if TTYPE == TokenType.GT and nextChar == "=": TTYPE = TokenType.GTOE; char += nextChar
+                if TTYPE == TokenType.LT:
+                    if nextChar == "=": TTYPE = TokenType.LTOE; char += nextChar
+                    if nextChar == "-": TTYPE = TokenType.ASSIGN; char += nextChar
         
-        token = Token(TTYPE, char, self.contextPosition-1, self.lineNumber)
+        token = Token(TTYPE, 
+                      char, 
+                      (self.contextPosition-1 if 
+                       TTYPE == TokenType.LTOE or 
+                       TTYPE == TokenType.GTOE or 
+                       TTYPE == TokenType.ASSIGN 
+                       else self.contextPosition), 
+                      self.lineNumber)
+        
         self.tokens.append(token)
         self.sourcePosition += 1; self.contextPosition += 1
         return True
@@ -133,9 +148,10 @@ class Lexer:
         while self.sourcePosition < len(self.source):
             self.skipWS()
             if not (self.isLiteral() or self.isSingleCharacterToken()): 
-                error = Error(self.contextPosition-1, self.lineNumber, f"Syntax error -> {self.lineNumber}:{self.contextPosition-1}" )
+                error = Error(self.contextPosition, self.lineNumber, f"Syntax error -> {self.lineNumber}:{self.contextPosition} | unkown symbol: {self.source[self.sourcePosition]}" )
                 self.errors.append(error)
                 self.sourcePosition += 1
+                self.contextPosition += 1
 
 class TokenType(Enum):
     
@@ -217,9 +233,9 @@ class Error:
 
 lexer = Lexer("example.cl")
 lexer.scan()
-print("Tokens")
+print("Tokens:")
 for token in lexer.tokens:
     print(token)
-print("ERRORS")
+print("Syntax errors:")
 for error in lexer.errors:
     print(error)

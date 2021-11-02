@@ -68,7 +68,7 @@ class CellularAutomaton inherits IO {
         ) ) )
     };
 };
-¿
+     ?^%
 class Main {
     cells : CellularAutomaton;
    
