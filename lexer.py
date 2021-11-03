@@ -191,6 +191,7 @@ class TokenType(Enum):
 keywords = {
     "class"    :  TokenType.CLASS,
     "else"     :  TokenType.ELSE,
+    "false"    :  TokenType.FALSE,
     "fi"       :  TokenType.FI,
     "if"       :  TokenType.IF,
     "in"       :  TokenType.IN,
@@ -206,7 +207,7 @@ keywords = {
     "new"      :  TokenType.NEW,
     "of"       :  TokenType.OF,
     "not"      :  TokenType.NOT,
-    "true"     :  TokenType.TRUE,
+    "true"     :  TokenType.TRUE
 }
 
 class Token:
