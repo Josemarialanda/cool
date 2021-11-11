@@ -112,25 +112,26 @@ class Lexer:
         char = self.source[self.sourcePosition]
         
         singleCharacterTokens = {
-            "(" : TokenType.LEFT_PAREN,
-            ")" : TokenType.RIGHT_PAREN,
-            "{" : TokenType.LEFT_BRACE,
-            "}" : TokenType.RIGHT_BRACE,
-            "," : TokenType.COMMA,
-            "." : TokenType.DOT,
-            "-" : TokenType.MINUS,
-            "+" : TokenType.PLUS,
-            ":" : TokenType.COLON,
-            ";" : TokenType.SEMICOLON,
-            "*" : TokenType.STAR,
-            "=" : TokenType.EQ,
-            "<" : TokenType.LT,
-            ">" : TokenType.GT,
+            "("  : TokenType.LEFT_PAREN,
+            ")"  : TokenType.RIGHT_PAREN,
+            "{"  : TokenType.LEFT_BRACE,
+            "}"  : TokenType.RIGHT_BRACE,
+            ","  : TokenType.COMMA,
+            "."  : TokenType.DOT,
+            "-"  : TokenType.MINUS,
+            "+"  : TokenType.PLUS,
+            ":"  : TokenType.COLON,
+            ";"  : TokenType.SEMICOLON,
+            "/"  : TokenType.SLASH,
+            "*"  : TokenType.STAR,
+            "="  : TokenType.EQ,
+            "<"  : TokenType.LT,
+            ">"  : TokenType.GT,
             "<=" : TokenType.LTOE,
             ">=" : TokenType.GTOE,
             "<-" : TokenType.ASSIGN,
-            "~" : TokenType.TILDE,
-            "@" : TokenType.AT
+            "~"  : TokenType.TILDE,
+            "@"  : TokenType.AT
         }
         
         TTYPE = singleCharacterTokens.get(char)
@@ -167,6 +168,8 @@ class Lexer:
                 self.errors.append(error)
                 self.sourcePosition += 1
                 self.contextPosition += 1
+        EOFToken = Token(TokenType.EOF, "$", 0, self.lineNumber+1)
+        self.tokens.append(EOFToken)
 
 class TokenType(Enum):
     
@@ -186,7 +189,7 @@ class TokenType(Enum):
     IF = 31; IN = 32; INHERITS = 33; ISVOID = 34
     LET = 35; LOOP = 36; POOL = 37; THEN = 38
     WHILE = 39; CASE = 40; ESAC = 41; NEW = 42
-    OF = 43; NOT = 44; TRUE = 45
+    OF = 43; NOT = 44; TRUE = 45; EOF = 46
     
 keywords = {
     "class"    :  TokenType.CLASS,
