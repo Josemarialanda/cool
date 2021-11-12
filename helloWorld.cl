@@ -1,5 +1,5 @@
 class Main inherits IO {
-  main() : Object {
+  main(dog:String) : Object {
     out_string("Hello, world!\n")
   };
 };

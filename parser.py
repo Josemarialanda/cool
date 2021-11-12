@@ -46,7 +46,7 @@ precedence = [TokenType.DOT,
               TokenType.AT,
               TokenType.TILDE,
               TokenType.ISVOID,
-              [TokenType.STAR,TokenType.DOT],
+              [TokenType.STAR,TokenType.SLASH],
               [TokenType.PLUS,TokenType.MINUS],
               [TokenType.LTOE,TokenType.LT,TokenType.EQ],
               TokenType.NOT,
@@ -81,7 +81,7 @@ class Parser:
     def FAIL(self, errorMessage = "Syntax error"):
         sys.exit(f"{errorMessage} : {self.currentToken.line}:{self.currentToken.contextPosition}")
     
-    def PROGRAM(self):
+    def PROGRAM(self):        
         self.CLASS_()
         self.SEMICOLON()
         while self.hasNext():
@@ -95,7 +95,8 @@ class Parser:
             self.next()
             self.TYPE_ID()
         self.LEFT_BRACE()
-        while self.peek() != TokenType.RIGHT_BRACE:
+        
+        while self.peek() != TokenType.RIGHT_BRACE and self.peek(2) != TokenType.SEMICOLON:
             self.FEATURE()
             self.SEMICOLON()
         self.RIGHT_BRACE()
@@ -103,11 +104,12 @@ class Parser:
     def FEATURE(self):
         
         def FEATURE1():
-            if self.peek() != TokenType.RIGHT_PAREN:            
-                self.formal()
+            if self.peek() != TokenType.RIGHT_PAREN:         
+                
+                self.FORMAL()
                 while self.peek() != TokenType.RIGHT_PAREN:
                     self.COMMA()
-                    self.formal()
+                    self.FORMAL()
             self.RIGHT_PAREN()
             self.COLON()
             self.TYPE_ID()
@@ -126,26 +128,22 @@ class Parser:
             self.next() 
             FEATURE1()
         if self.peek() == TokenType.COLON: 
-            self.next() 
+            self.next()
             FEATURE2()
     
-    def formal(self):
+    def FORMAL(self):
         self.OBJ_ID()
         self.COLON()
         self.TYPE_ID()
     
     def EXPR(self):
-        
-        position = self.position
-        token = self.tokens[position].tokenType
-            
+
         def EXPR1():
             self.OBJ_ID()
             self.ASSIGN()
             self.EXPR()
         
         def EXPR2():
-            self.EXPR()
             if self.peek() == TokenType.AT:
                 self.AT()
                 self.TYPE_ID()
@@ -170,7 +168,7 @@ class Parser:
                         self.COMMA()
                         self.EXPR()
             self.RIGHT_PAREN()
-        
+            
         def EXPR4():
             self.IF()
             self.EXPR()
@@ -189,12 +187,11 @@ class Parser:
         
         def EXPR6():
             self.LEFT_BRACE()
-            if self.peek() != TokenType.RIGHT_BRACE:
-                self.EXPR()
-                self.SEMICOLON()
+            self.EXPR();
+            if self.peek() == TokenType.COMMA:
                 while self.peek() != TokenType.RIGHT_BRACE:
+                    self.COMMA()
                     self.EXPR()
-                    self.SEMICOLON()
             self.RIGHT_BRACE()
         
         def EXPR7():
@@ -300,11 +297,20 @@ class Parser:
         
         def EXPR25():
             self.FALSE()
-            
+
         if self.peek() == TokenType.OBJ_ID:
             if self.peek(2) == TokenType.ASSIGN: EXPR1()
             elif self.peek(2) == TokenType.LEFT_PAREN: EXPR3()
-            else: EXPR21()
+            else:
+                EXPR21()
+                if self.peek() == TokenType.AT or self.peek() == TokenType.DOT: EXPR2()
+                elif self.peek() == TokenType.PLUS: EXPR11()
+                elif self.peek() == TokenType.MINUS: EXPR12()
+                elif self.peek() == TokenType.STAR: EXPR13()
+                elif self.peek() == TokenType.SLASH: EXPR14()
+                elif self.peek() == TokenType.LT: EXPR16()
+                elif self.peek() == TokenType.LTOE: EXPR17()
+                elif self.peek() == TokenType.EQ: EXPR18()
         elif self.peek() == TokenType.IF: EXPR4()
         elif self.peek() == TokenType.WHILE: EXPR5()
         elif self.peek() == TokenType.LEFT_BRACE: EXPR6()
