@@ -1,8 +1,10 @@
+from codeGen import CodeGen
 from lexer import Lexer
 from parser import Parser
 import sys
 
 def main(source):
+    # Feed source to lexer
     lexer = Lexer(source)
     lexer.scan()
     if lexer.errors != []:
@@ -10,8 +12,11 @@ def main(source):
             print(error)
         sys.exit("syntax errors")
     else:
+        # Feed token stream to parser
         parser = Parser(lexer.tokens)
-        parser.parse()
+        AST = parser.parse()
+        # Feed AST to code generator
+        codeGen = CodeGen(AST)
         
 
 if __name__ == "__main__":
