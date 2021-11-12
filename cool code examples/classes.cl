@@ -1,4 +1,4 @@
-class B {
+class B inherits IO {
   s : String <- "Hello";
   g (y:String) : Int {
     y.concat(s)

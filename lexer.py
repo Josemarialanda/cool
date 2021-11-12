@@ -245,7 +245,7 @@ class Error:
         
     def __repr__(self) -> str:
         return f'''
-              contextPosition  : {self.contextPosition}
               errorMessage     : {self.errorMessage}
               line             : {self.line}
+              contextPosition  : {self.contextPosition}
               '''

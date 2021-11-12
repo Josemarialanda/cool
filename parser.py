@@ -1,11 +1,18 @@
 from lexer import Token, TokenType
 import sys
+from anytree import Node
+from anytree.exporter import DotExporter
 
-class Node:
-    def __init__(self, lexeme):
-        self.left   = None
-        self.right  = None
-        self.lexeme = lexeme
+class ParseTree:
+    
+    def __init__(self):
+        self.root = Node("Program")
+    
+    def printTree(self):
+        DotExporter(self.root,
+        nodeattrfunc=lambda node: "fixedsize=true, width=1, height=1, shape=diamond",
+        edgeattrfunc=lambda parent, child: "style=bold"
+        ).to_picture("ParseTree.png")
     
 '''
 Cool grammar (syntax)
@@ -55,17 +62,18 @@ precedence = [TokenType.DOT,
 class Parser:
     
     tokens : 'list[Token]'
-    parseTree : Node # will store parse tree here
+    parseTree : ParseTree # TODO: generate parse tree
     
     def __init__(self, tokens):
-        self.parseStatus = True
+        self.parseTree = ParseTree()
         self.tokens = tokens
         self.position = -1
         self.currentToken = self.tokens[self.position]
         
     def parse(self):
-        self.PROGRAM()
-        print("Success!")
+        self.PROGRAM(); 
+        self.parseTree.printTree()
+        return self.parseTree
         
     def next(self, step = 1):
         self.position += step
@@ -78,11 +86,16 @@ class Parser:
     def peek(self, lookahead = 1):
         return self.tokens[self.position+lookahead].tokenType
     
-    def FAIL(self, errorMessage = "Syntax error"):
-        self.currentToken = self.tokens[self.position-1]
-        sys.exit(f"{errorMessage} : {self.currentToken.line}:{self.currentToken.contextPosition}")
+    def FAIL(self, errorMessage):
+        # self.currentToken = self.tokens[self.position-1]
+        print(f'''
+              Syntax error : {errorMessage}
+              Line         : {self.currentToken.line}
+              Column       : {self.currentToken.contextPosition}
+              ''')
+        sys.exit("Syntax errors")
     
-    def PROGRAM(self):        
+    def PROGRAM(self):
         self.CLASS_()
         self.SEMICOLON()
         while self.hasNext():
@@ -342,49 +355,49 @@ class Parser:
 
     # terminals
     
-    STRING      = lambda self: self.next() == TokenType.STRING      or self.FAIL()
-    NUMBER      = lambda self: self.next() == TokenType.NUMBER      or self.FAIL()
-    TYPE_ID     = lambda self: self.next() == TokenType.TYPE_ID     or self.FAIL()
-    OBJ_ID      = lambda self: self.next() == TokenType.OBJ_ID      or self.FAIL()
-    SELF        = lambda self: self.next() == TokenType.SELF        or self.FAIL()
-    SELF_TYPE   = lambda self: self.next() == TokenType.SELF_TYPE   or self.FAIL()
-    LEFT_PAREN  = lambda self: self.next() == TokenType.LEFT_PAREN  or self.FAIL()
-    RIGHT_PAREN = lambda self: self.next() == TokenType.RIGHT_PAREN or self.FAIL()
-    LEFT_BRACE  = lambda self: self.next() == TokenType.LEFT_BRACE  or self.FAIL()
-    RIGHT_BRACE = lambda self: self.next() == TokenType.RIGHT_BRACE or self.FAIL()
-    COMMA       = lambda self: self.next() == TokenType.COMMA       or self.FAIL()
-    DOT         = lambda self: self.next() == TokenType.DOT         or self.FAIL()
-    MINUS       = lambda self: self.next() == TokenType.MINUS       or self.FAIL()
-    PLUS        = lambda self: self.next() == TokenType.PLUS        or self.FAIL()
-    COLON       = lambda self: self.next() == TokenType.COLON       or self.FAIL()
-    SEMICOLON   = lambda self: self.next() == TokenType.SEMICOLON   or self.FAIL()
-    SLASH       = lambda self: self.next() == TokenType.SLASH       or self.FAIL()
-    STAR        = lambda self: self.next() == TokenType.STAR        or self.FAIL()
-    EQ          = lambda self: self.next() == TokenType.EQ          or self.FAIL()
-    LT          = lambda self: self.next() == TokenType.LT          or self.FAIL()
-    GT          = lambda self: self.next() == TokenType.GT          or self.FAIL()
-    LTOE        = lambda self: self.next() == TokenType.LTOE        or self.FAIL()
-    GTOE        = lambda self: self.next() == TokenType.GTOE        or self.FAIL()
-    ASSIGN      = lambda self: self.next() == TokenType.ASSIGN      or self.FAIL()
-    TILDE       = lambda self: self.next() == TokenType.TILDE       or self.FAIL()
-    AT          = lambda self: self.next() == TokenType.AT          or self.FAIL()
-    CLASS       = lambda self: self.next() == TokenType.CLASS       or self.FAIL()
-    ELSE        = lambda self: self.next() == TokenType.ELSE        or self.FAIL()
-    FALSE       = lambda self: self.next() == TokenType.FALSE       or self.FAIL()
-    FI          = lambda self: self.next() == TokenType.FI          or self.FAIL()
-    IF          = lambda self: self.next() == TokenType.IF          or self.FAIL()
-    IN          = lambda self: self.next() == TokenType.IN          or self.FAIL()
-    INHERITS    = lambda self: self.next() == TokenType.INHERITS    or self.FAIL()
-    ISVOID      = lambda self: self.next() == TokenType.ISVOID      or self.FAIL()
-    LET         = lambda self: self.next() == TokenType.LET         or self.FAIL()
-    LOOP        = lambda self: self.next() == TokenType.LOOP        or self.FAIL()
-    POOL        = lambda self: self.next() == TokenType.POOL        or self.FAIL()
-    THEN        = lambda self: self.next() == TokenType.THEN        or self.FAIL()
-    WHILE       = lambda self: self.next() == TokenType.WHILE       or self.FAIL()
-    CASE        = lambda self: self.next() == TokenType.CASE        or self.FAIL()
-    ESAC        = lambda self: self.next() == TokenType.ESAC        or self.FAIL()
-    NEW         = lambda self: self.next() == TokenType.NEW         or self.FAIL()
-    OF          = lambda self: self.next() == TokenType.OF          or self.FAIL()
-    NOT         = lambda self: self.next() == TokenType.NOT         or self.FAIL()
-    TRUE        = lambda self: self.next() == TokenType.TRUE        or self.FAIL()
+    STRING      = lambda self, errorMessage = "Syntax error": self.next() == TokenType.STRING      or self.FAIL(errorMessage)
+    NUMBER      = lambda self, errorMessage = "Syntax error": self.next() == TokenType.NUMBER      or self.FAIL(errorMessage)
+    TYPE_ID     = lambda self, errorMessage = "Syntax error": self.next() == TokenType.TYPE_ID     or self.FAIL(errorMessage)
+    OBJ_ID      = lambda self, errorMessage = "Syntax error": self.next() == TokenType.OBJ_ID      or self.FAIL(errorMessage)
+    SELF        = lambda self, errorMessage = "Syntax error": self.next() == TokenType.SELF        or self.FAIL(errorMessage)
+    SELF_TYPE   = lambda self, errorMessage = "Syntax error": self.next() == TokenType.SELF_TYPE   or self.FAIL(errorMessage)
+    LEFT_PAREN  = lambda self, errorMessage = "Syntax error": self.next() == TokenType.LEFT_PAREN  or self.FAIL(errorMessage)
+    RIGHT_PAREN = lambda self, errorMessage = "Syntax error": self.next() == TokenType.RIGHT_PAREN or self.FAIL(errorMessage)
+    LEFT_BRACE  = lambda self, errorMessage = "Syntax error": self.next() == TokenType.LEFT_BRACE  or self.FAIL(errorMessage)
+    RIGHT_BRACE = lambda self, errorMessage = "Syntax error": self.next() == TokenType.RIGHT_BRACE or self.FAIL(errorMessage)
+    COMMA       = lambda self, errorMessage = "Syntax error": self.next() == TokenType.COMMA       or self.FAIL(errorMessage)
+    DOT         = lambda self, errorMessage = "Syntax error": self.next() == TokenType.DOT         or self.FAIL(errorMessage)
+    MINUS       = lambda self, errorMessage = "Syntax error": self.next() == TokenType.MINUS       or self.FAIL(errorMessage)
+    PLUS        = lambda self, errorMessage = "Syntax error": self.next() == TokenType.PLUS        or self.FAIL(errorMessage)
+    COLON       = lambda self, errorMessage = "Syntax error": self.next() == TokenType.COLON       or self.FAIL(errorMessage)
+    SEMICOLON   = lambda self, errorMessage = "Syntax error": self.next() == TokenType.SEMICOLON   or self.FAIL(errorMessage)
+    SLASH       = lambda self, errorMessage = "Syntax error": self.next() == TokenType.SLASH       or self.FAIL(errorMessage)
+    STAR        = lambda self, errorMessage = "Syntax error": self.next() == TokenType.STAR        or self.FAIL(errorMessage)
+    EQ          = lambda self, errorMessage = "Syntax error": self.next() == TokenType.EQ          or self.FAIL(errorMessage)
+    LT          = lambda self, errorMessage = "Syntax error": self.next() == TokenType.LT          or self.FAIL(errorMessage)
+    GT          = lambda self, errorMessage = "Syntax error": self.next() == TokenType.GT          or self.FAIL(errorMessage)
+    LTOE        = lambda self, errorMessage = "Syntax error": self.next() == TokenType.LTOE        or self.FAIL(errorMessage)
+    GTOE        = lambda self, errorMessage = "Syntax error": self.next() == TokenType.GTOE        or self.FAIL(errorMessage)
+    ASSIGN      = lambda self, errorMessage = "Syntax error": self.next() == TokenType.ASSIGN      or self.FAIL(errorMessage)
+    TILDE       = lambda self, errorMessage = "Syntax error": self.next() == TokenType.TILDE       or self.FAIL(errorMessage)
+    AT          = lambda self, errorMessage = "Syntax error": self.next() == TokenType.AT          or self.FAIL(errorMessage)
+    CLASS       = lambda self, errorMessage = "Syntax error": self.next() == TokenType.CLASS       or self.FAIL(errorMessage)
+    ELSE        = lambda self, errorMessage = "Syntax error": self.next() == TokenType.ELSE        or self.FAIL(errorMessage)
+    FALSE       = lambda self, errorMessage = "Syntax error": self.next() == TokenType.FALSE       or self.FAIL(errorMessage)
+    FI          = lambda self, errorMessage = "Syntax error": self.next() == TokenType.FI          or self.FAIL(errorMessage)
+    IF          = lambda self, errorMessage = "Syntax error": self.next() == TokenType.IF          or self.FAIL(errorMessage)
+    IN          = lambda self, errorMessage = "Syntax error": self.next() == TokenType.IN          or self.FAIL(errorMessage)
+    INHERITS    = lambda self, errorMessage = "Syntax error": self.next() == TokenType.INHERITS    or self.FAIL(errorMessage)
+    ISVOID      = lambda self, errorMessage = "Syntax error": self.next() == TokenType.ISVOID      or self.FAIL(errorMessage)
+    LET         = lambda self, errorMessage = "Syntax error": self.next() == TokenType.LET         or self.FAIL(errorMessage)
+    LOOP        = lambda self, errorMessage = "Syntax error": self.next() == TokenType.LOOP        or self.FAIL(errorMessage)
+    POOL        = lambda self, errorMessage = "Syntax error": self.next() == TokenType.POOL        or self.FAIL(errorMessage)
+    THEN        = lambda self, errorMessage = "Syntax error": self.next() == TokenType.THEN        or self.FAIL(errorMessage)
+    WHILE       = lambda self, errorMessage = "Syntax error": self.next() == TokenType.WHILE       or self.FAIL(errorMessage)
+    CASE        = lambda self, errorMessage = "Syntax error": self.next() == TokenType.CASE        or self.FAIL(errorMessage)
+    ESAC        = lambda self, errorMessage = "Syntax error": self.next() == TokenType.ESAC        or self.FAIL(errorMessage)
+    NEW         = lambda self, errorMessage = "Syntax error": self.next() == TokenType.NEW         or self.FAIL(errorMessage)
+    OF          = lambda self, errorMessage = "Syntax error": self.next() == TokenType.OF          or self.FAIL(errorMessage)
+    NOT         = lambda self, errorMessage = "Syntax error": self.next() == TokenType.NOT         or self.FAIL(errorMessage)
+    TRUE        = lambda self, errorMessage = "Syntax error": self.next() == TokenType.TRUE        or self.FAIL(errorMessage)
     EOF         = lambda self: self.peek() == TokenType.EOF
