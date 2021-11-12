@@ -187,11 +187,11 @@ class Parser:
         
         def EXPR6():
             self.LEFT_BRACE()
-            self.EXPR();
-            if self.peek() == TokenType.COMMA:
-                while self.peek() != TokenType.RIGHT_BRACE:
-                    self.COMMA()
-                    self.EXPR()
+            self.EXPR()
+            self.SEMICOLON()
+            while self.peek() != TokenType.RIGHT_BRACE:
+                self.EXPR()
+                self.SEMICOLON()
             self.RIGHT_BRACE()
         
         def EXPR7():
@@ -300,7 +300,9 @@ class Parser:
 
         if self.peek() == TokenType.OBJ_ID:
             if self.peek(2) == TokenType.ASSIGN: EXPR1()
-            elif self.peek(2) == TokenType.LEFT_PAREN: EXPR3()
+            elif self.peek(2) == TokenType.LEFT_PAREN:
+                EXPR3()
+                if self.peek() == TokenType.AT or self.peek() == TokenType.DOT: EXPR2()
             else:
                 EXPR21()
                 if self.peek() == TokenType.AT or self.peek() == TokenType.DOT: EXPR2()
@@ -311,6 +313,7 @@ class Parser:
                 elif self.peek() == TokenType.LT: EXPR16()
                 elif self.peek() == TokenType.LTOE: EXPR17()
                 elif self.peek() == TokenType.EQ: EXPR18()
+                
         elif self.peek() == TokenType.IF: EXPR4()
         elif self.peek() == TokenType.WHILE: EXPR5()
         elif self.peek() == TokenType.LEFT_BRACE: EXPR6()
