@@ -1,7 +1,7 @@
 class Main inherits IO {
   main(): Object {
     {
-    out_string("Enter an integer greater-than or equal-to 0: ");
+    out_string("Enter an integer greater-than or equal-to 0: ")
     
     let input: Int <- in_int() in
       if input < 0 then

@@ -79,6 +79,7 @@ class Parser:
         return self.tokens[self.position+lookahead].tokenType
     
     def FAIL(self, errorMessage = "Syntax error"):
+        self.currentToken = self.tokens[self.position-1]
         sys.exit(f"{errorMessage} : {self.currentToken.line}:{self.currentToken.contextPosition}")
     
     def PROGRAM(self):        
